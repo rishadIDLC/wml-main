@@ -1,5 +1,5 @@
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {Platform, View, StyleSheet, Text, BackHandler, Alert} from "react-native";
+import {Platform, View, StyleSheet, Text, BackHandler, Alert, Linking} from "react-native";
 import {WebView} from "react-native-webview";
 import {GetBranches, WebViewURL} from "@/api-requests/base-requests";
 import Constants from 'expo-constants';
@@ -17,16 +17,14 @@ const Index = () => {
     useLayoutEffect(() => {
         (async () => {
             let success = await GetBranches();
-            if(success){
-                setLoaded(success);
-            }
+            success && setLoaded(success);
         })()
     }, []);
 
     useEffect(() => {
         (async () => {
             !status?.granted && await requestPermissions();
-
+            !mediaStatus?.granted && await requestMediaPermissions();
         })()
     }, [status, mediaStatus]);
 
@@ -52,27 +50,8 @@ const Index = () => {
 
     // @ts-ignore
     const handleFileDownload = async ({ nativeEvent }) => {
-        console.log(nativeEvent);
         const { downloadUrl } = nativeEvent;
-
-        if (Platform.OS === "android" || Platform.OS === "ios") {
-            const fileUri = `${FileSystem.documentDirectory}${downloadUrl.split("/").pop()}`;
-            console.log(fileUri);
-            try {
-                !mediaStatus?.granted && await requestMediaPermissions();
-
-                const downloadResumable = FileSystem.createDownloadResumable(downloadUrl, fileUri);
-
-                // @ts-ignore
-                const { uri } = await downloadResumable.downloadAsync();
-                alert(`File downloaded to: ${uri}`);
-            } catch (error) {
-                console.error("Download failed:", error);
-                alert("Failed to download the file.");
-            }
-        } else {
-            alert("File download is only supported on mobile platforms.");
-        }
+        downloadUrl && await Linking.openURL(downloadUrl);
     };
 
     React.useEffect(() => {
