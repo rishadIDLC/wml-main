@@ -5,7 +5,9 @@
     "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/adaptive-icon.png",
-    "scheme": ["wealth-management"],
+    "scheme": [
+      "wealth-management"
+    ],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -43,7 +45,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "c359cf9e-1ba6-4497-a741-7f9bed6b2098"
+        "projectId": "b079a63d-ce46-47d8-916d-f7c283425bd7"
       }
     }
   }

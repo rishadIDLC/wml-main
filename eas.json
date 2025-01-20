@@ -12,7 +12,12 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {"ANDROID_HOME":"/Users/idlcmac01/Library/Android/sdk/"},
+      "android": {
+        "buildType": "apk",
+        "resourceClass": "medium"
+      }
     }
   },
   "submit": {

@@ -1,63 +1,36 @@
-import React, {useEffect, useRef} from "react";
-import { StyleSheet, View } from "react-native";
-import { WebView } from "react-native-webview";
-import * as ImagePicker from "expo-image-picker";
-import axios from "axios";
+import { useFonts } from 'expo-font';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import 'react-native-reanimated';
 
-export default function App() {
 
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync();
 
-  useEffect(()=>{
-    (async ()=>{
-      await axios.get("https://web.idlc.com/api/v1/get-branch?idlc_category=idlc");
-    })();
-  },[]);
+export default function RootLayout() {
+  const [loaded] = useFonts({
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  });
 
-  const webviewRef = useRef(null);
-
-  const handleFileUpload = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.cancelled) {
-      console.log(result.uri);
-      // Handle the selected image file or pass it to the WebView
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
     }
-  };
+  }, [loaded]);
 
-  const handleWebViewMessage = (event) => {
-    const { data } = event.nativeEvent;
-    if (data === "fileUpload") {
-      handleFileUpload();
-    }
-  };
+  if (!loaded) {
+    return null;
+  }
 
   return (
-      <View style={styles.container}>
-        <WebView
-            ref={webviewRef}
-            source={{ uri: "https://apps.idlc.com/WMSalesApp/" }}
-            style={styles.webview}
-            onMessage={handleWebViewMessage}
-            injectedJavaScript={`
-          document.querySelector('input[type="file"]').addEventListener('click', function() {
-            window.ReactNativeWebView.postMessage('fileUpload');
-          });
-        `}
-        />
-      </View>
+      <>
+        <Stack screenOptions={{headerShown: false}}>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="dark" />
+      </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  webview: {
-    flex: 1,
-  },
-});
