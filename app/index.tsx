@@ -30,7 +30,7 @@ const Index = () => {
                     javaScriptEnabled
                     domStorageEnabled
                 />
-                : <Text>Branches are loading...</Text>
+                : <Text>Loading...</Text>
             }
         </View>
     );
