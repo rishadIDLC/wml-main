@@ -55,10 +55,7 @@ const Index = () => {
         destination.create();
         const output = await File.downloadFileAsync(url, destination);
         FileSystem.getContentUriAsync(output.uri).then(cUri => {
-            IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
-                data: cUri,
-                flags: 1,
-            });
+            IntentLauncher.startActivityAsync('android.intent.action.VIEW', {data: cUri, flags: 1});
         });
     }
 
