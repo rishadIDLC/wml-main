@@ -52,19 +52,14 @@ const Index = () => {
 
     const handleDownload = async (url:string) => {
         const destination = new Directory(Paths.cache, 'pdfs');
-        try {
-            destination.create();
-            const output = await File.downloadFileAsync(url, destination);
-            FileSystem.getContentUriAsync(output.uri).then(cUri => {
-                IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
-                    data: cUri,
-                    flags: 1,
-                });
+        destination.create();
+        const output = await File.downloadFileAsync(url, destination);
+        FileSystem.getContentUriAsync(output.uri).then(cUri => {
+            IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+                data: cUri,
+                flags: 1,
             });
-        } catch (error) {
-            console.error(error);
-            alert(JSON.stringify(error));
-        }
+        });
     }
 
     React.useEffect(() => {
