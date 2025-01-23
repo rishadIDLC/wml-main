@@ -10,6 +10,7 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint",
+    "build": "eas build --profile development --platform android --local",
     "build-apk": "eas build --profile production --platform android --local"
   },
   "jest": {
@@ -28,9 +29,11 @@
     "eas-cli": "^14.4.1",
     "expo": "~52.0.25",
     "expo-constants": "~17.0.4",
+    "expo-dev-client": "^5.0.10",
     "expo-file-system": "^18.0.7",
     "expo-font": "~13.0.3",
     "expo-image-picker": "^16.0.4",
+    "expo-intent-launcher": "^12.0.2",
     "expo-linking": "~7.0.4",
     "expo-router": "~4.0.16",
     "expo-splash-screen": "~0.29.20",

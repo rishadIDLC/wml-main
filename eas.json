@@ -5,6 +5,7 @@
   },
   "build": {
     "development": {
+      "env": {"ANDROID_HOME":"/Users/idlcmac01/Library/Android/sdk/"},
       "developmentClient": true,
       "distribution": "internal"
     },

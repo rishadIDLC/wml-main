@@ -1,10 +1,12 @@
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {Platform, View, StyleSheet, Text, BackHandler, Alert, Linking} from "react-native";
+import {Platform, View, StyleSheet, Text, BackHandler, Alert} from "react-native";
 import {WebView} from "react-native-webview";
 import {GetBranches, WebViewURL} from "@/api-requests/base-requests";
 import Constants from 'expo-constants';
 import {useCameraPermissions, useMediaLibraryPermissions} from "expo-image-picker";
-import * as FileSystem from "expo-file-system";
+import {Directory, File, Paths} from 'expo-file-system/next'
+import * as FileSystem from 'expo-file-system';
+import * as IntentLauncher from 'expo-intent-launcher';
 
 const Index = () => {
     const [loaded, setLoaded] = useState(false)
@@ -48,11 +50,22 @@ const Index = () => {
         }
     };
 
-    // @ts-ignore
-    const handleFileDownload = async ({ nativeEvent }) => {
-        const { downloadUrl } = nativeEvent;
-        downloadUrl && await Linking.openURL(downloadUrl);
-    };
+    const handleDownload = async (url:string) => {
+        const destination = new Directory(Paths.cache, 'pdfs');
+        try {
+            destination.create();
+            const output = await File.downloadFileAsync(url, destination);
+            FileSystem.getContentUriAsync(output.uri).then(cUri => {
+                IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+                    data: cUri,
+                    flags: 1,
+                });
+            });
+        } catch (error) {
+            console.error(error);
+            alert(JSON.stringify(error));
+        }
+    }
 
     React.useEffect(() => {
         const backHandler = BackHandler.addEventListener("hardwareBackPress", handleBackPress);
@@ -67,8 +80,15 @@ const Index = () => {
                     style={{flex: 1}}
                     source={{ uri: WebViewURL }}
                     injectedJavaScript={InjectedJavascript}
-                    onNavigationStateChange={(navState) => setCanGoBack(navState.canGoBack)}
-                    onFileDownload={handleFileDownload}
+                    onNavigationStateChange={async (navState) => {
+                        setCanGoBack(navState.canGoBack);
+
+                        if(navState.url.includes("get/lead/document")){
+                            console.log(navState.url);
+                            await handleDownload(navState.url);
+                        }
+                    }}
+                    blobDownloadingEnabled
                     scrollEnabled
                     originWhitelist={['*']}
                     scalesPageToFit={Platform.OS !== "android"}
