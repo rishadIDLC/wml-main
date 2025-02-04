@@ -6,9 +6,10 @@ import Constants from 'expo-constants';
 import {useCameraPermissions, useMediaLibraryPermissions} from "expo-image-picker";
 import DownloadOpenPdf, {openPDF} from "@/utility/download-open-pdf";
 import * as Notifications from "expo-notifications";
+import LottieView from "lottie-react-native";
 
 const Index = () => {
-    const [Loaded, setLoaded] = useState(false);
+    const [loaded, setLoaded] = useState(false);
     const InjectedJavascript = `const meta = document.createElement('meta'); meta.setAttribute('content', 'initial-scale=0.5, maximum-scale=0.5, user-scalable=0'); meta.setAttribute('name', 'viewport'); document.getElementsByTagName('head')[0].appendChild(meta); `
     const [status, requestPermissions] = useCameraPermissions();
     const [mediaStatus, requestMediaPermissions] = useMediaLibraryPermissions();
@@ -18,9 +19,7 @@ const Index = () => {
     useLayoutEffect(() => {
         (async () => {
             let success = await GetBranches();
-            if(success){
-                setLoaded(true);
-            }
+            setLoaded(success);
         })()
     }, []);
 
@@ -67,16 +66,13 @@ const Index = () => {
 
     return (
         <View style={styles.container}>
-            {!Loaded ? <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-                <Text>Loading...</Text>
-            </View> :<WebView
+            {loaded ? <WebView
                 ref={webViewRef}
                 style={{flex: 1}}
                 source={{uri: WebViewURL}}
                 injectedJavascript={InjectedJavascript}
                 onNavigationStateChange={(navState) => {
                     setCanGoBack(navState.canGoBack);
-                    setLoaded(false);
                 }}
                 incognito={true}
                 javaScriptCanOpenWindowsAutomatically={true}
@@ -97,7 +93,13 @@ const Index = () => {
                 }}
                 setSupportMultipleWindows={true}
                 setBuiltInZoomControls={false}
-            />}
+            /> : <View style={styles.animationContainer}>
+                <LottieView
+                    autoPlay loop
+                    style={{width: 200, height: 200}}
+                    source={require('../assets/animation/loading6.json')}
+                />
+            </View>}
         </View>
     );
 }
@@ -108,4 +110,14 @@ const styles = StyleSheet.create({
         flex: 1,
         marginTop: Constants.statusBarHeight,
     },
+    animationContainer: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0, left: 0, right: 0,
+        backgroundColor: 'rgba(0,0,0,0.25)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000
+    },
+
 });

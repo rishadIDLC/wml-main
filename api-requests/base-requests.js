@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-
 export const WebViewURL = 'https://apps.idlc.com/WMSalesApp/';
 export const BaseURL = '';
 
