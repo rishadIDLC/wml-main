@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import FullScreenLoading from "@/layout/full-screen-loading";
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -26,6 +27,7 @@ export default function RootLayout() {
 
   return (
       <>
+          <FullScreenLoading />
         <Stack screenOptions={{headerShown: false}}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />

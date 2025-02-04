@@ -4,9 +4,9 @@ import {WebView} from "react-native-webview";
 import {GetBranches, WebViewURL} from "@/api-requests/base-requests";
 import Constants from 'expo-constants';
 import {useCameraPermissions, useMediaLibraryPermissions} from "expo-image-picker";
-import {Directory, File, Paths} from 'expo-file-system/next'
-import * as FileSystem from 'expo-file-system';
-import * as IntentLauncher from 'expo-intent-launcher';
+import UtilityStore from "@/store/utility-store";
+import DownloadOpenPdf, {openPDF} from "@/utility/download-open-pdf";
+import * as Notifications from "expo-notifications";
 
 const Index = () => {
     const [loaded, setLoaded] = useState(false)
@@ -15,11 +15,13 @@ const Index = () => {
     const [mediaStatus, requestMediaPermissions] = useMediaLibraryPermissions();
     const webViewRef = useRef(null);
     const [canGoBack, setCanGoBack] = useState(false);
+    const {isLoading, setIsLoading} = UtilityStore();
 
     useLayoutEffect(() => {
         (async () => {
+            setIsLoading(true);
             let success = await GetBranches();
-            success && setLoaded(success);
+            success && setIsLoading(!success);
         })()
     }, []);
 
@@ -50,14 +52,14 @@ const Index = () => {
         }
     };
 
-    const handleDownload = async (url:string) => {
-        const destination = new Directory(Paths.cache, 'pdfs');
-        destination.create();
-        const output = await File.downloadFileAsync(url, destination);
-        FileSystem.getContentUriAsync(output.uri).then(cUri => {
-            IntentLauncher.startActivityAsync('android.intent.action.VIEW', {data: cUri, flags: 1});
+    React.useEffect(() => {
+        const subscription = Notifications.addNotificationResponseReceivedListener(async res => {
+            const {pdfUri} = res.notification.request.content.data;
+            console.log(pdfUri);
+            await openPDF(pdfUri);
         });
-    }
+        return () => subscription.remove();
+    }, []);
 
     React.useEffect(() => {
         const backHandler = BackHandler.addEventListener("hardwareBackPress", handleBackPress);
@@ -66,31 +68,35 @@ const Index = () => {
 
     return (
         <View style={styles.container}>
-            {loaded ?
-                <WebView
-                    ref={webViewRef}
-                    style={{flex: 1}}
-                    source={{ uri: WebViewURL }}
-                    injectedJavaScript={InjectedJavascript}
-                    onNavigationStateChange={async (navState) => {
-                        setCanGoBack(navState.canGoBack);
+            <WebView
+                ref={webViewRef}
+                style={{flex: 1}}
+                source={{uri: WebViewURL}}
+                injectedJavascript={InjectedJavascript}
+                onNavigationStateChange={(navState) => {
+                    setCanGoBack(navState.canGoBack);
+                    setIsLoading(false);
+                }}
+                incognito={true}
+                javaScriptCanOpenWindowsAutomatically={true}
 
-                        if(navState.url.includes("get/lead/document")){
-                            console.log(navState.url);
-                            await handleDownload(navState.url);
-                        }
-                    }}
-                    blobDownloadingEnabled
-                    scrollEnabled
-                    originWhitelist={['*']}
-                    scalesPageToFit={Platform.OS !== "android"}
-                    mediaPlaybackRequiresUserAction={false}
-                    allowsInlineMediaPlayback
-                    javaScriptEnabled
-                    domStorageEnabled
-                />
-                : <Text>Loading...</Text>
-            }
+                onOpenWindow={async (syntheticEvent) => {
+                    const { targetUrl } = syntheticEvent?.nativeEvent;
+                    console.log('Intercepted OpenWindow for', targetUrl)
+                    Platform.OS==="android" && await DownloadOpenPdf(targetUrl);
+                }}
+
+                onShouldStartLoadWithRequest={(request) => {
+                    if (request.url.toLowerCase().includes('get/lead/document')) {
+                        console.log("PDF URL detected:", request.url);
+                        Platform.OS==="ios" &&  DownloadOpenPdf(request.url);
+                        return false; // Prevent WebView from opening the PDF
+                    }
+                    return true; // Allow WebView to load URL
+                }}
+                setSupportMultipleWindows={true}
+                setBuiltInZoomControls={false}
+            />
         </View>
     );
 }
